@@ -19,7 +19,7 @@ In order to evaluate the model on X-Test, Inter4K-S, Inter4K-L and Xiph you need
 | Xiph   | [Xiph generation](https://github.com/sniklaus/softmax-splatting/blob/master/benchmark.py) | 
 | Inter4k       | [our link(TODO)]() | 
 
-After downloading the testsets you can configure the testset location for the program by using the following flags:
+After downloading the testsets you can configure the testset location for the program by using the following flags for execution:
 ```
 --x_test_data_path /to/your/location
 --xiph_data_path /to/your/location
