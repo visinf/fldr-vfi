@@ -42,7 +42,8 @@ python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_p
 After training is done (200 epochs), you can optionally do the T-optimization. For this delete the `_latest.pt` checkpoint from the directory `checkpoint_dir/fLDRnet_X4K1000FPS_exp2/`. Then use your previous train command and add the following options to it `--epochs 220 --TOptimization --sminterpWT --init_lr 0.001`.
 Now the current T value is printed during this postoptimization. You can stop training when T is converging.
 
-
+## Acknowledgements
+We thank [Sim et al.](https://openaccess.thecvf.com/content/ICCV2021/papers/Sim_XVFI_eXtreme_Video_Frame_Interpolation_ICCV_2021_paper.pdf), [Niklaus et al.](https://openaccess.thecvf.com/content_CVPR_2020/papers/Niklaus_Softmax_Splatting_for_Video_Frame_Interpolation_CVPR_2020_paper.pdf) and [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf) for providing 4K datasets, which were necessary to adequately evaluate and train our method.
 
 ## Citation
 We hope you find our work useful. If you would like to acknowledge it in your project, please use the following citation:
