@@ -14,7 +14,7 @@ You can run the code in your conda environment or create a new one. The followin
 1. Create conda environment
 ```
 conda create --name fldrnet
-source activate fldrnet
+conda activate fldrnet
 ```
 2. Install PyTorch.
 ```
