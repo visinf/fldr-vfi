@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument('--vimeo_data_path', type=str, default=superprefix+'vimeo_triplet') 
     parser.add_argument('--xiph_data_path', type=str, default="../XVFI-main/XiphDataset/netflix") 
     parser.add_argument('--inter4k_data_path', type=str, default="../XVFIM-main/inter4K/Inter4KNewTestset/") 
-    M
+    
 
     ################################        My Hyperparameters      #############################################
     

@@ -42,17 +42,17 @@ class MYPCA():
     def __init__(self,n_components=0):
         self.n_components = n_components
         self.store = dict()
-    
+
     def fit_transform(self,data,device):
-    	
-    	self.fit(data.clone())
-    	transformed = self.transform(data,device)
-    	return transformed
+        
+        self.fit(data.clone())
+        transformed = self.transform(data,device)
+        return transformed
 
 
-	def fit(self,data):
+    def fit(self,data):
         if(self.n_components==0):
-        	self.n_components = data.shape[1]
+            self.n_components = data.shape[1]
         self.n = data.shape[0]
 
         loc_data = data
@@ -61,7 +61,7 @@ class MYPCA():
 
         some = True
         if(loc_data.shape[1] > 1023):
-           some = False
+            some = False
 
         cupyuse = True
         if(cupyuse):
@@ -76,9 +76,9 @@ class MYPCA():
         
         self.eigenvectors = v[:self.n_components,:]
         self.eigenvalues = (s**2)/self.n
-       	self.explained_variance_ratio_ =  self.eigenvalues/torch.sum(self.eigenvalues)
+        self.explained_variance_ratio_ =  self.eigenvalues/torch.sum(self.eigenvalues)
         
-   
+
 
     def transform(self,data,device,compsused=0):
         
@@ -90,14 +90,14 @@ class MYPCA():
         else:
             transformed = torch.matmul(loc_data,self.eigenvectors[:compsused,:].permute(1,0).to(device))
         return transformed
-    
+
     def inverse_transform(self,data):
-    	back = torch.matmul(data,self.eigenvectors[:,:])#.transpose(0,1)
-    	back = back + self.mean
-    	return back
+        back = torch.matmul(data,self.eigenvectors[:,:])#.transpose(0,1)
+        back = back + self.mean
+        return back
 
     def store_sth(self,toSave,name):
-    	self.store[name] = toSave
+        self.store[name] = toSave
 
 
 
