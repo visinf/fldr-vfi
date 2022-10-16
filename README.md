@@ -39,11 +39,16 @@ In order to train a model from scratch onto the [X-Train dataset](https://github
 ```
 python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path /to/xtrain/train
 ```
-After training is done (200 epochs), you can optionally do the T-optimization. For this delete the _latest.pt checkpoint from the directory `checkpoint_dir/fLDRnet_X4K1000FPS_exp2/`
+After training is done (200 epochs), you can optionally do the T-optimization. For this delete the `_latest.pt` checkpoint from the directory `checkpoint_dir/fLDRnet_X4K1000FPS_exp2/`. Then use your previous train command and add the following options to it `--epochs 220 --TOptimization --sminterpWT --init_lr 0.001`.
+Now the current T value is printed during this postoptimization. You can stop training when T is converging.
 
 
 
-
+## Citation
+We hope you find our work useful. If you would like to acknowledge it in your project, please use the following citation:
+```
+TODO
+```
 
 
 
