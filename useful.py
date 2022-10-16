@@ -3,8 +3,7 @@ import cupy as cp
 import time 
 import torch.nn.functional as F
 class ScaleIt():
-	#	8,3,2,384,384
-	#	8,3,384,384
+
 	def __init__(self, name,arr,free_axes):
 		self.name = name
 		self.arr = arr
@@ -37,36 +36,29 @@ class ScaleIt():
 		print("Mins: ",self.mins.detach().cpu().numpy())
 
 import torch
-#import cupy as cp
+
 class MYPCA():
 
     def __init__(self,n_components=0):
         self.n_components = n_components
-        #print("components: ",self.n_components)
         self.store = dict()
-    # (n,feats)
+    
     def fit_transform(self,data,device):
     	
     	self.fit(data.clone())
     	transformed = self.transform(data,device)
-    	#transformed = cp.matmul(loc_data,(self.eigenvectors[:self.n_components,:]).transpose(0,1))#cp.matmul(loc_data,cp.transpose(self.eigenvectors[:self.n_components,:])) #[self.n_components
     	return transformed
 
 
-	# (n,feats)
-    def fit(self,data):
-        #print("MY PCA IT IS")
+	def fit(self,data):
         if(self.n_components==0):
         	self.n_components = data.shape[1]
         self.n = data.shape[0]
 
         loc_data = data
-        #loc_data = loc_data.transpose(0,1)
         self.mean = torch.mean(data,dim=0)
         loc_data -=  self.mean
 
-        # print("loc_data",loc_data.shape)
-        # print(loc_data.get_device(),loc_data.shape)
         some = True
         if(loc_data.shape[1] > 1023):
            some = False
@@ -76,38 +68,30 @@ class MYPCA():
             with cp.cuda.Device(0):
                 tempCup = cp.asarray(loc_data.clone().cpu())
                 u,s,v = cp.linalg.svd(tempCup,full_matrices=False)
-                u = 0#torch.as_tensor(u,device="cpu")
+                u = 0
                 s = torch.as_tensor(cp.asnumpy(s),device="cpu")
                 v = torch.as_tensor(cp.asnumpy(v),device="cpu")
         else:
-            u,s,v = torch.svd(loc_data,some=some)#torch.linalg.svd(loc_data,full_matrices=False)    #,full_matrices=False
+            u,s,v = torch.svd(loc_data,some=some)
         
-        #print("v and u: ",v.shape,u.shape)
-        #print(v.shape)
-        self.eigenvectors = v[:self.n_components,:]#u[:,:self.n_components]#v
-        #print("eigenvectors: ",self.eigenvectors.shape)
+        self.eigenvectors = v[:self.n_components,:]
         self.eigenvalues = (s**2)/self.n
        	self.explained_variance_ratio_ =  self.eigenvalues/torch.sum(self.eigenvalues)
         
-        #return loc_data
+   
 
-    # loc_Data: (n,feat) x (64,10) 10 nur als beispiel
     def transform(self,data,device,compsused=0):
         
         self.mean = torch.as_tensor(self.mean,device=device)
         self.eigenvectors = torch.as_tensor(self.eigenvectors,device=device)
-        #print(data.get_device(),self.mean.get_device())
         loc_data = data - self.mean.to(device)
-        #print(loc_data.shape,self.eigenvectors.shape)
         if(compsused == 0):
             transformed = torch.matmul(loc_data,self.eigenvectors[:,:].permute(1,0).to(device))#.transpose(0,1) #cp.matmul(loc_data,cp.transpose(self.eigenvectors[:self.n_components,:]))
         else:
             transformed = torch.matmul(loc_data,self.eigenvectors[:compsused,:].permute(1,0).to(device))
         return transformed
     
-    # in: (n,10) (10,64)
     def inverse_transform(self,data):
-    	#print("eigenvectors: ",self.eigenvectors.shape,data.shape)
     	back = torch.matmul(data,self.eigenvectors[:,:])#.transpose(0,1)
     	back = back + self.mean
     	return back
@@ -117,8 +101,6 @@ class MYPCA():
 
 
 
-# flow_10_l = flow_l[:,:2,:,:]
-#                     flow_01_l = flow_l[:,2:,:,:]
 from OpticalFlow.PWCNet import PWCNet
 class MyPWC():
     def __init__(self,args,cpu=False):
@@ -126,7 +108,7 @@ class MyPWC():
         self.flow_predictor = PWCNet()
         self.flow_predictor.load_state_dict(torch.load('./OpticalFlow/pwc-checkpoint.pt'))
         if(not cpu):
-            self.flow_predictor.to(self.args.gpu if args != None else 0)
+            self.flow_predictor.to(self.args.gpu)
     def get_flow(self,im0,im1):
         
         flow = self.flow_predictor(torch.cat([im0, im1], dim=0), torch.cat([im1, im0], dim=0))
@@ -178,26 +160,31 @@ def numpy_prints(arr,name=""):
 	print("mean: ", np.mean(arr))
 	print("std: ", np.std(arr))
 
-from OpticalFlow.PWCNet import PWCNet
-class MyPWC():
-    def __init__(self,args,cpu=False):
-        self.args = args
-        self.flow_predictor = PWCNet()
-        self.flow_predictor.load_state_dict(torch.load('./OpticalFlow/pwc-checkpoint.pt'))
-        if(not cpu):
-            self.flow_predictor.to(self.args.gpu if args != None else 0)
-    def get_flow(self,im0,im1):
-        
-        flow = self.flow_predictor(torch.cat([im0, im1], dim=0), torch.cat([im1, im0], dim=0))
-        flow01, flow10 = torch.split(flow, im0.shape[0], dim=0)
-        retflow = torch.cat([flow10,flow01],dim=1)
-        return retflow
-
-if __name__ == "__main__":
-    a = torch.randn(1,3,540,1024).to(0)
-    b = torch.randn(1,3,540,1024).to(0)
-    
-    flownet = MyPWC(args=None)
-    while True:
-        flownet.get_flow(a,b)
-
+def getmodelconfig(args):
+    args.pcanet = True
+    args.mean_vector_norm = True
+    args.ds_normInput = True
+    args.scales = [8,16,32,64]
+    args.fractions = [4,16,64,256]
+    args.S_trn = 3
+    args.S_tst = 3
+    args.dataset = "X4K1000FPS"
+    args.oneEV = True
+    args.ref_feat_extrac = True
+    args.optimizeEV = True
+    args.lr_milestones = [70,120,170]
+    args.ExacOneEV = True
+    args.takeBestModel = True
+    args.allImUp = True
+    args.softsplat = True
+    args.forwendflowloss = True
+    args.warp_alpha = 0.05
+    args.sminterp = True
+    args.ownsmooth = True
+    args.noResidAddup = True
+    args.impmasksoftsplat = True
+    args.cutoffUnnec = True
+    args.fixsmoothtwistup = True
+    args.sminterpInpIm = True
+    args.patch_size = 512
+    args.tempbottomflowfix = True

@@ -1,3 +1,6 @@
+# This code contains parts of XVFInet from Sim et al. (https://github.com/JihyongOh/XVFI) 
+# Their extensive code and Dataset were crucial for this.
+
 from dataclasses import dataclass
 import torch.utils.data as data
 import torch.nn as nn
@@ -13,25 +16,16 @@ from functools import reduce  # Required in Python 3
 import operator
 from skimage.metrics import peak_signal_noise_ratio
 
-#import pycuda.autoinit
-#import pycuda.gpuarray as gpuarray
-#import skcuda.linalg as linalg
-#from skcuda.linalg import PCA as cuPCA
 
 from sklearn.decomposition import PCA
 from numpy.lib.stride_tricks import as_strided
 import scipy.fft as scF
 import cupy as cp
-#import cupyx.scipy.fft as cufft
-from myAdditions import MYPCA,torch_prints,numpy_prints
+
+from useful import MYPCA,torch_prints,numpy_prints
 
 
-# import numpy as cp
-# import scipy.fft as cufft
-# from sklearn.decomposition import PCA as MYPCA
-#from cuml.decomposition import PCA
-#import cuml
-# My files import:
+
 
 
 
@@ -164,17 +158,6 @@ def create_pca(dataloader,params):
 
         images = [rgb2gray(input_frames[0,:,0,:sized,:sized]),rgb2gray(input_frames[0,:,1,:sized,:sized]),rgb2gray(frameT[0,:,:sized,:sized])] #[3,sized,sized]
 
-        # 388,584 Padding to 8 dividable
-        # padded_images = []
-        # padding_h = wiS - images[0].shape[0]%wiS 
-        # padding_w = wiS - images[0].shape[1]%wiS
-        # for i in images:
-        #     temp =np.zeros((i.shape[0] + padding_h, i.shape[1] + padding_w))
-        #     temp[:i.shape[0],:i.shape[1]] = i[:,:]
-        #     padded_images.append(temp)
-        #print("Train_index: ",trainIndex)
-
-
         blocks = sized//wiS
         chan = frameT.shape[1]
         
@@ -203,7 +186,6 @@ def create_pca(dataloader,params):
     pca = PCA()
     pca_transformed = pca.fit_transform(stored_eighter)
     pk.dump(pca,open("pca.pkl","wb"))
-    #print(pca.components_[:5])
     total_var = sum(pca.explained_variance_)
     print(pca.explained_variance_ratio_[:20])
 
@@ -289,7 +271,6 @@ def frames_loader_test(args, I0I1It_Path, validation=False):
     (ih, iw, c) = frame.shape
     frames = np.stack(frames, axis=0)  # (T, H, W, 3)
 
-    #print("Frame size test: ", frames.shape) [3,2160,4095,3]
     if args.dataset == 'X4K1000FPS':
         if validation:
             ps = args.validation_patch_size#512
@@ -310,8 +291,8 @@ class DCTParamsAdap:
     weightMat = torch.zeros((2,2))
     wiS: int 
     gpu: int 
-    components_fraction: float #= 1/64
-    data_used: float #= 0.01
+    components_fraction: float 
+    data_used: float 
     h: int
     w: int
 
@@ -320,35 +301,16 @@ class DCTParamsAdap:
 class DCTParams:
     weightMat = torch.zeros((2,2))
     wiS: int 
-#    gpu: int 
-    components_fraction: float #= 1/64
-    data_used: float #= 0.01
-#    h: int
-#    w: int
+    components_fraction: float 
+    data_used: float 
 
 
-    # def getH(self):
-    #     return self.h//self.wiS + (0 if(self.h%self.wiS == 0) else 1)
-    # def getW(self):
-    #     return self.w//self.wiS + (0 if(self.w%self.wiS == 0) else 1)    
 
-    # def getUBH(self):
-    #     return (self.h//self.wiS + (0 if(self.h%self.wiS == 0) else 1))*self.wiS
-    # def getUBW(self):
-    #     return (self.w//self.wiS + (0 if(self.w%self.wiS == 0) else 1))*self.wiS
-
-#to_dctpca(im,params,components_fraction=0)
-#from_dctpca_to_dct_diff(res,eigenvectors,mean,params,pca)
-#def to_dct(im,wiS):
-#dct_inverse(im,wiS_param=0,params=0):
-
-###############################         NEEDS TO BE FIXED, blocks_x and blocks_y           ###############################################
-# input i.e. [8,16,20,20]
 def pca_inverse(res,params,pcas,comps_used,cut_back=True,wanted_dim=0,args=0):
-    #print(eigenvectors.shape)
+
     B,comps,BY,BX = res.shape
 
-    eigenvectors = torch.cat([torch.as_tensor(i.eigenvectors[:comps_used,:],device=params.gpu).unsqueeze(0) for i in pcas])#torch.as_tensor(pca.eigenvectors[:comps_used,:],device=params.gpu)
+    eigenvectors = torch.cat([torch.as_tensor(i.eigenvectors[:comps_used,:],device=params.gpu).unsqueeze(0) for i in pcas])
     mean = torch.cat([torch.as_tensor(i.mean,device=params.gpu).unsqueeze(0) for i in pcas],dim=0).unsqueeze(1)
     wiS = params.wiS
     sized = wiS**2
@@ -360,12 +322,10 @@ def pca_inverse(res,params,pcas,comps_used,cut_back=True,wanted_dim=0,args=0):
             if(args.weightMat):
                 res = res.permute((0,2,3,1)).reshape(-1,comps)
                 res = torch.matmul()
-                # BITTE HIER WEITER MACHEN! batched matmul und backtransform to original view
             temp[i,:] = temp[i,:]*(ma - mi) + mi
 
 
  
-    #print("mean: ",mean.shape)
     temp = temp.permute((0,2,3,1))
     temp = temp.reshape(B,-1,comps)
     temp = temp.reshape(B,-1,3,comps//3)
@@ -373,33 +333,28 @@ def pca_inverse(res,params,pcas,comps_used,cut_back=True,wanted_dim=0,args=0):
 
     # Two normalization Concepts!!!!!!!!
     if(args.mean_vector_norm):
-        #print("temp shape: ",temp.shape)
         for i in range(len(pcas)):
             comps_used = pcas[i].store["comps_used"]
             mean_vec = pcas[i].store["mean_vec"]
             temp_shap = temp[i,:].shape
-            temp[i,:] = (temp[i,:]* mean_vec[:temp_shap[-1]])#.reshape(temp_shap)
+            temp[i,:] = (temp[i,:]* mean_vec[:temp_shap[-1]])
     if(args.maxmin_vec):
         for i in range(len(pcas)):
             mi,ma = pcas[i].store["mima"]
             ma = ma[:temp[i,:].shape[-1]]
             mi = mi[:temp[i,:].shape[-1]]
-            #print("mi ma: ",mi,ma)
             temp[i,:] = (temp[i,:] *(ma-mi)) + mi
 
-    # back unnormalization          res = (((res - mi)/(ma-mi))*2)-1
-    
+    # back unnormalization
+
     cupy_pca = False
     # Components to actual DCT
     if(cupy_pca):
-        #print("shape before pca: ",temp.shape)
         temp = cp.asarray(temp)#temp.cpu().numpy()
         back = pca.inverse_transform(temp)
         back = torch.tensor(back,device=params.gpu)
     else:
-        #print(temp.shape,eigenvectors.shape)
         back = torch.matmul(temp,eigenvectors)
-        #print(back.shape,mean.shape)
         back += mean
 
     # Back transformation to Right format
@@ -413,7 +368,7 @@ def pca_inverse(res,params,pcas,comps_used,cut_back=True,wanted_dim=0,args=0):
 
 # IM: [C,H,W]
 def to_pca(im,params,components_fraction=0,args=0,pca=0):
-    #print(params)
+
     mempool = cp.get_default_memory_pool()
     wiS = params.wiS
     weightMat = params.weightMat
@@ -426,8 +381,8 @@ def to_pca(im,params,components_fraction=0,args=0,pca=0):
     chan = im.shape[0]
     height = im.shape[1]
     width = im.shape[2]
-    pad_y = wiS - height%wiS #height - (height//wiS)*wiS
-    pad_x = wiS - width%wiS #width - (width//wiS)*wiS
+    pad_y = wiS - height%wiS 
+    pad_x = wiS - width%wiS 
     if(pad_y == wiS):
         pad_y = 0
     if(pad_x == wiS):
@@ -438,43 +393,33 @@ def to_pca(im,params,components_fraction=0,args=0,pca=0):
     blocks_x = width//wiS +(1 if(pad_x >0)else 0)
 
     image = np.zeros((chan,height + pad_y, width + pad_x))
-    #image[:,:height,:width] = im[:,:,:]
+
     
     image[:,:,:] = np.pad(im,((0,0),(0,pad_y),(0,pad_x)) ,mode=args.padding)
     im = 0
-    #print("My big blocked shape BEFORE!!!!!!!!: ",image.shape)
     # Into blocks
     blocked = as_strided(image,shape=(chan,blocks_x,blocks_y,wiS,wiS),strides=(8*prod(image.shape[1:]),wiS*8,blocks_x*wiS*8*wiS, wiS*blocks_x*8,8))
-    #print("My big blocked shape!!!!!!!!: ",blocked.shape)
 
 
-    #blocked = scF.dctn(blocked,axes=(3,4))    #blocked_gpu = cufft.fftn(blocked_gpu,axes=(3,4)).real 
+
     #CUPY FFT
     pca_ready = blocked.reshape(-1,wiS*wiS)
 
 
-    # GPU########################################
-    #pca_ready_gpu = cp.asarray(pca_ready)
     pca_ready_gpu = torch.as_tensor(pca_ready,dtype=torch.float64,device=args.gpu)
-    #print("PCA READY GPU: ",pca_ready_gpu.shape)
 
-    # choice = False
-    # if(not choice):
-    in1 = pca_ready_gpu # cp.asarray(pca_ready_gpu.clone())
+    in1 = pca_ready_gpu 
     if(args.weightMat):
-        learnedPCA = MYPCA(n_components=wiS**2)#(n_components=wiS**2)
+        learnedPCA = MYPCA(n_components=wiS**2)
     else:
         learnedPCA = MYPCA(n_components=components_used)
 
-    #print("in1: ",in1.shape)
     if(pca==0):
         res = learnedPCA.fit_transform(in1,args.gpu)
     else:
-        #res = learnedPCA.fit_transform(in1)#[:,:components_used]
         res = pca.transform(in1,args.gpu)
-    #print("res: ",res.shape)
-    #res = torch.as_tensor(res,device=args.gpu)
-        
+    
+
 
     
     if(args.mean_vector_norm):
@@ -493,23 +438,17 @@ def to_pca(im,params,components_fraction=0,args=0,pca=0):
             learnedPCA.store_sth((mi,ma),"mima")
         else:
             mi,ma = pca.store["mima"]
-        #print("mi ma: ",mi,ma)
         res = (res - mi)/(ma - mi)
         
 
-    # res: (n,comps) comps=wiS**2
-    # W: (comps,wiS**2)
-    # ret: (n,comps)
     if(args.weightMat):
         res = torch.matmul(weightMat,res.T).T
-        #print(params)
-        #print(params.weightMat.shape)
-        #print("Result shape of weightmat: ",res.shape)
-        
+    
+
         
 
     res = res.reshape(chan,blocks_x,blocks_y,components_used)    
-    res = res.permute((0,3,2,1))#cp.transpose(res,(0,3,1,2))
+    res = res.permute((0,3,2,1))
     res = res.reshape(-1,blocks_y,blocks_x) # chan * components,blocks_y,blocks_x
     
     # Normalize it!
@@ -524,16 +463,14 @@ def to_pca(im,params,components_fraction=0,args=0,pca=0):
 
     # to [-1,1]
     res = (res*2)-1
-    #mi = torch.as_tensor(mi,device=params.gpu)
-    #ma = torch.as_tensor(ma,device=params.gpu)
     
+
     mempool.free_all_blocks()
     
     return res,learnedPCA
 
 # im: [6,H,W]
 def to_pca_diff(im,params,args,mean,EV,mean_vec):
-    #print(params)
     start_time = time.time()
     wiS = params.wiS
     weightMat = params.weightMat
@@ -543,32 +480,18 @@ def to_pca_diff(im,params,args,mean,EV,mean_vec):
     height = im.shape[1]
     width = im.shape[2]
     
-    #print(pad_x,pad_y)
+    
     blocks_y = height//wiS 
     blocks_x = width//wiS 
     if(height % wiS != 0 or width % wiS != 0):
         raise Exception("in to_pca_diff the image is not padded right." + str(height)+" "+str(width))
 
-    if(False): # efficient way
-        image = np.zeros(im.shape)
-        image[:] = im.to("cpu").detach().numpy()
-        # Into blocks
-        blocked = as_strided(image,shape=(chan,blocks_x,blocks_y,wiS,wiS),strides=(8*prod(image.shape[1:]),wiS*8,blocks_x*wiS*8*wiS, wiS*blocks_x*8,8))
-        #56.623.104
-    else:
-        #print("blocked shape: ",blocked.shape)
-        #start_time = time.time()
-        imtem = torch.as_tensor(im).unsqueeze(0)
-        toblockfun = nn.Unfold(kernel_size=wiS,stride=wiS)
-        #print("Imtem: ",imtem.shape)
-        imtem = toblockfun(imtem).squeeze(0)
-        blocked = imtem.reshape(-1,blocks_y,blocks_x).permute(0,2,1).reshape(chan,wiS**2,blocks_x,blocks_y).permute(0,2,3,1).reshape(chan,blocks_x,blocks_y,wiS,wiS)   #.reshape(6,wiS,wiS,blocks_y,blocks_x).permute(0,4,3,2,1)
-        # [C*wiS**2,L]
-        #print("after transf: ",imtem.shape)
-        #print("time for pca blockwise: ",time.time()-start_time)
-        #blocked_test = torch.as_tensor(blocked)
-        #print("part error: ",(processedimtem[:,:,:,0]-blocked_test[:,:,:,0,0]).abs().sum())
-        #print("error: ",(processedimtem.cpu()-blocked_test).abs().sum())
+    imtem = torch.as_tensor(im).unsqueeze(0)
+    toblockfun = nn.Unfold(kernel_size=wiS,stride=wiS)
+    imtem = toblockfun(imtem).squeeze(0)
+    blocked = imtem.reshape(-1,blocks_y,blocks_x).permute(0,2,1).reshape(chan,wiS**2,blocks_x,blocks_y).permute(0,2,3,1).reshape(chan,blocks_x,blocks_y,wiS,wiS)   #.reshape(6,wiS,wiS,blocks_y,blocks_x).permute(0,4,3,2,1)
+    
+
 
 
 
@@ -576,21 +499,14 @@ def to_pca_diff(im,params,args,mean,EV,mean_vec):
     pca_ready_gpu = torch.as_tensor(blocked.reshape(-1,wiS*wiS),device=args.gpu)
 
 
-    #res = pca.transform(in1)
     loc_data = pca_ready_gpu - mean
     assert not pca_ready_gpu.isnan().any(), "pca ready gpu"
     assert not mean.isnan().any(), "mean"
     assert not EV.isnan().any(), "EV"
 
-    if(args.timetest):
-        print("PCA preparation: ",time.time()-start_time)
-    start_time = time.time()
     transformed = torch.matmul(loc_data,EV.permute(1,0))
     assert not transformed.isnan().any(), "transformed"
     
-    if(args.timetest):
-        print("Matmul: ",time.time()-start_time)
-    start_time = time.time()
     if(args.mean_vector_norm):
         transformed = transformed/mean_vec
     
@@ -598,27 +514,23 @@ def to_pca_diff(im,params,args,mean,EV,mean_vec):
 
 
     transformed = transformed.reshape(chan,blocks_x,blocks_y,components_used)    
-    transformed = transformed.permute((0,3,2,1))#cp.transpose(res,(0,3,1,2))
-    transformed = transformed.reshape(-1,blocks_y,blocks_x) # chan * components,blocks_y,blocks_x
+    transformed = transformed.permute((0,3,2,1))
+    transformed = transformed.reshape(-1,blocks_y,blocks_x) 
     
     # Normalize it!
-    if(not args.maxmin_vec):
-        mi = torch.min(transformed)
-        ma = torch.max(transformed)
-        transformed = (((transformed - mi)/(ma-mi)))
+    mi = torch.min(transformed)
+    ma = torch.max(transformed)
+    transformed = (((transformed - mi)/(ma-mi)))
 
     # to [-1,1]
     transformed = (transformed*2)-1
     
-    #print("end of diff: ",transformed.shape)
-    if(args.timetest):
-        print("Rest of PCA: ",time.time()-start_time)
     return transformed
 
 def pca_inverse_testing(res,params,pcas,comps_used,cut_back=True,wanted_dim=0):
-    #print(eigenvectors.shape)
+    
     B,comps,BY,BX = res.shape
-    eigenvectors = torch.cat([torch.as_tensor(i.eigenvectors[:comps_used,:],device="cpu").unsqueeze(0) for i in pcas])#torch.as_tensor(pca.eigenvectors[:comps_used,:],device=params.gpu)
+    eigenvectors = torch.cat([torch.as_tensor(i.eigenvectors[:comps_used,:],device="cpu").unsqueeze(0) for i in pcas])
     mean = torch.cat([torch.as_tensor(i.mean,device="cpu").unsqueeze(0) for i in pcas],dim=0).unsqueeze(1)
     wiS = params.wiS
     sized = wiS**2
@@ -626,7 +538,6 @@ def pca_inverse_testing(res,params,pcas,comps_used,cut_back=True,wanted_dim=0):
     
 
  
-    #print("mean: ",mean.shape)
     temp = res.permute((0,2,3,1))
     temp = temp.reshape(B,-1,comps)
     temp = temp.reshape(B,-1,3,comps//3)
@@ -634,7 +545,6 @@ def pca_inverse_testing(res,params,pcas,comps_used,cut_back=True,wanted_dim=0):
 
     
     back = torch.matmul(temp,eigenvectors)
-    #print(back.shape,mean.shape)
     back += mean
 
     # Back transformation to Right format
@@ -647,8 +557,6 @@ def pca_inverse_testing(res,params,pcas,comps_used,cut_back=True,wanted_dim=0):
     return back
 
 def to_pca_testing(im,params,components_fraction=0,pca=0,compsused=0):
-    #print(params)
-
     wiS = params.wiS
     weightMat = params.weightMat
     if(components_fraction == 0):
@@ -660,43 +568,31 @@ def to_pca_testing(im,params,components_fraction=0,pca=0,compsused=0):
     chan = im.shape[0]
     height = im.shape[1]
     width = im.shape[2]
-    pad_y = wiS - height%wiS #height - (height//wiS)*wiS
-    pad_x = wiS - width%wiS #width - (width//wiS)*wiS
+    pad_y = wiS - height%wiS 
+    pad_x = wiS - width%wiS 
     if(pad_y == wiS):
         pad_y = 0
     if(pad_x == wiS):
         pad_x = 0
     
-    #print(pad_x,pad_y)
+    
     blocks_y = height//wiS +(1 if(pad_y >0)else 0)
     blocks_x = width//wiS +(1 if(pad_x >0)else 0)
 
     image = np.zeros((chan,height + pad_y, width + pad_x))
-    #image[:,:height,:width] = im[:,:,:]
     
+
     image[:,:,:] = np.pad(im,((0,0),(0,pad_y),(0,pad_x)) ,mode="reflect")
     im = 0
-    #print("My big blocked shape BEFORE!!!!!!!!: ",image.shape)
-    # Into blocks
+    
     blocked = as_strided(image,shape=(chan,blocks_x,blocks_y,wiS,wiS),strides=(8*prod(image.shape[1:]),wiS*8,blocks_x*wiS*8*wiS, wiS*blocks_x*8,8))
-    #print("My big blocked shape!!!!!!!!: ",blocked.shape)
-
-
-    #blocked = scF.dctn(blocked,axes=(3,4))    #blocked_gpu = cufft.fftn(blocked_gpu,axes=(3,4)).real 
-    #CUPY FFT
+    
     pca_ready = blocked.reshape(-1,wiS*wiS)
 
 
-    # GPU########################################
-    #pca_ready_gpu = cp.asarray(pca_ready)
     pca_ready_gpu = torch.as_tensor(pca_ready,dtype=torch.float64,device="cpu")
-    #print("PCA READY GPU: ",pca_ready_gpu.shape)
-
-    # choice = False
-    # if(not choice):
-    in1 = pca_ready_gpu#cp.asarray(pca_ready_gpu.clone())
-    #pca = MYPCA(n_components=components_used)
-    #print("in1: ",in1.shape)
+    in1 = pca_ready_gpu
+    
     if(pca==0):
         learnedPCA = MYPCA(n_components=components_used)
         learnedPCA.fit(in1)
@@ -704,17 +600,15 @@ def to_pca_testing(im,params,components_fraction=0,pca=0,compsused=0):
     else:
         learnedPCA = pca
         if(compsused==0):
-            res = pca.transform(in1,device="cpu")#[:,:components_used]
+            res = pca.transform(in1,device="cpu")
         else:
             res = pca.transform(in1,device="cpu",compsused=compsused)
 
-    #print("res: ",res.shape)
-        #res = torch.as_tensor(res,device=params.gpu)
-            
+
 
         res = res.reshape(chan,blocks_x,blocks_y,components_used)    
-        res = res.permute((0,3,2,1))#cp.transpose(res,(0,3,1,2))
-        res = res.reshape(-1,blocks_y,blocks_x) # chan * components,blocks_y,blocks_x
+        res = res.permute((0,3,2,1))
+        res = res.reshape(-1,blocks_y,blocks_x)
     
     return res,learnedPCA
 
@@ -732,19 +626,15 @@ def test_on_dataset(dataloader,params):
         psnrlist = []
         pca = 0
         for testIndex, (frames, t_value, scene_name, frameRange) in enumerate(dataloader):
-            #frameT = frames[:, :, -1, :, :]  # [1,C,H,W]
+            
             input_frames = (frames[:, :, :-1, :, :]+1)/2    #([1, 3, 2, 2160, 4096]) 
             input_frames = input_frames[0,:,0,:1080,:2048].cpu() # to [C,H,W]
             
-            #print(input_frames.shape)
+            
             temp_pic = input_frames.clone().numpy()
             if(upanddown):
                 input_frames = nn.functional.interpolate(input_frames.unsqueeze(0),scale_factor=2,mode="nearest").squeeze(0)
-            #print(input_frames.shape)
             
-            #input_frames = input_frames[:,:1024,:1024]
-            #print("max, min: ",torch.max(input_frames).item(),torch.min(input_frames).item())
-
             params = DCTParamsAdap(wiS=8,gpu=1,components_fraction=1/64,data_used=0.01,h=input_frames.shape[1],w=input_frames.shape[2])
             if(count == 0):
                 print(params)
@@ -754,18 +644,10 @@ def test_on_dataset(dataloader,params):
 
             if(count == 0):
                 _,pca = to_pca_testing(input_frames,params,components_fraction=0)
-                #print("This frame it is learned from: ",scene_name,frameRange)
                 log_file.write("This frame it is learned from: " + scene_name[0] +" \nPic name: "+frameRange[0][0] + "\n")
-                #thepca = pca
-            #print("before to pca_tesing: ",input_frames.shape)
-            res,_ = to_pca_testing(input_frames,params,components_fraction=0,pca=pca)
-            #res = res.unsqueeze(0)
-            #print("after ",res.shape)
+                res,_ = to_pca_testing(input_frames,params,components_fraction=0,pca=pca)
+            
             res = torch.as_tensor(res,device="cpu").unsqueeze(0)
-            #print(res.shape)
-            #torch_prints(res,"PCA INFO")
-            #print("intermediate shape: ",res.shape)
-            #res,params,pcas,comps_used,cut_back=True,wanted_dim=0
             reconstructed = pca_inverse_testing(res,params,[pca],comps_used=int(wiS**2 *params.components_fraction),cut_back=True,wanted_dim=input_frames.shape[-2:])
             
             if(upanddown):
@@ -773,39 +655,17 @@ def test_on_dataset(dataloader,params):
             else:
                 reconstructed = reconstructed.squeeze(0).cpu().numpy()
 
-            #reconstructed = dct_inverse(reconstructed,params=params)
-            # DCT and back
-            # res = to_dct(input_frames,wiS=params.wiS)
-            # input_frames = dct_inverse(res,params=params)
-            # # DCTPCA and Back
-            # dctpcaT,pca = to_dctpca(input_frames,params)
-            # dctpcaT = torch.as_tensor(dctpcaT,device=params.gpu).unsqueeze(0) # to tensor and batchsize added (1)
-            # reconstructed = from_dctpca_to_dct_diff(dctpcaT,params,pca).cpu().numpy().squeeze(0)
-            # reconstructed = dct_inverse(reconstructed,params=params)
-
-
-            #print("Reconstructed shape: ",reconstructed.shape)
-            #print("absolute differences: ",np.sum(np.abs(temp_pic-reconstructed)))
-
-            #print(temp_pic.shape,reconstructed.shape)
-            #numpy_prints(reconstructed,"reconstructed")
-            #numpy_prints(temp_pic,"temp")
-
             psnrResult = peak_signal_noise_ratio(temp_pic,reconstructed,data_range=1)
             if(count == 0):
                 log_file.write("PSNR of original frame: " + str(psnrResult) + "\n")
                 print("PSNR of original frame: ",psnrResult)
             psnrlist.append(psnrResult)
-             #ret is numpy
             
-            #print("Reconstructed max, min: ",np.max(reconstructed),np.min(reconstructed))
-            #cv2.imwrite("tempTest/temppic.png",np.transpose(temp_pic,[1, 2, 0])*255)
-            #cv2.imwrite("tempTest/retpic.png",np.transpose(reconstructed,[1, 2, 0])*255)
             count += 1
             if(count == 50):
                 break
         
-        #print("PSNR LIST: ",psnrlist)
+        
         psnrlist = np.array(psnrlist[1:])
         print("PSNR mean: ",np.mean(psnrlist))
         print("PSNR std: ",np.std(psnrlist))
@@ -844,10 +704,7 @@ def reconstruction_test_scales(dataloader,params):
     for i in scales:
         for k in [1/4,1/8,1/16,1/32,1/64]:
             possib.append([i,k])
-    # possib = []
-    # for i in b:
-    #     for k in range(int(math.log2(i**2))):
-    #         possib.append([i,1/(2**(k+1))])
+    
 
     counting = 0
     once = True
@@ -867,17 +724,9 @@ def reconstruction_test_scales(dataloader,params):
             input_frames = input_frames[0,:,0,:,:].cpu() # to [C,H,W]  #824:1336,1792:2304
             if(i[0]<1):
                 input_frames = F.interpolate(input_frames.unsqueeze(0) ,scale_factor=i[0],mode="bilinear").squeeze(0)
-            #print(input_frames.shape)
-           
-
-
-            #print(input_frames.shape)
+            
             temp_pic = input_frames.clone().numpy()
-            #print(input_frames.shape)
-
-            #input_frames = input_frames[:,:1024,:1024]
-            #print("max, min: ",torch.max(input_frames).item(),torch.min(input_frames).item())
-
+            
             params = DCTParamsAdap(wiS=8,gpu=1,components_fraction=1/4,data_used=0.01,h=input_frames.shape[1],w=input_frames.shape[2])
 
             if(use_learned):
@@ -892,13 +741,9 @@ def reconstruction_test_scales(dataloader,params):
             else:
                 _,pca = to_pca_testing(input_frames,params,components_fraction=0)
                 res,_ = to_pca_testing(input_frames,params,components_fraction=0,pca=pca)
-            #res = res.unsqueeze(0)
-            #print("after ",res.shape)
+            
             res = torch.as_tensor(res,device="cpu").unsqueeze(0)
-            #print(res.shape)
-            #torch_prints(res,"PCA INFO")
-            #print("intermediate shape: ",res.shape)
-            #res,params,pcas,comps_used,cut_back=True,wanted_dim=0
+            
             if(use_learned):
                 reconstructed = pca_inverse_testing(res,params,[learned_pca],comps_used=int(i[1]*(8**2)),cut_back=True,wanted_dim=input_frames.shape[-2:])
                 reconstructed = (reconstructed +1)/2
@@ -908,14 +753,13 @@ def reconstruction_test_scales(dataloader,params):
             reconstructed = reconstructed.squeeze(0).cpu().numpy()
 
             cv2.imwrite("ownTextFiles/"+str(testIndex)+".png",np.transpose(reconstructed,(1,2,0))*255)
-            #cv2.imwrite("ownTextFiles/"+str(testIndex)+".png",np.transpose(temp_pic,(1,2,0))*255)
             
+
             psnrResult = peak_signal_noise_ratio(temp_pic,reconstructed,data_range=1)
             print("PSNR Result: ",psnrResult)
             psnrlist.append(psnrResult)
         break
-        #print("Counting: ",counting)
-        #print("PSNR LIST: ",psnrlist)
+        
         psnrlist = np.array(psnrlist)
         print("PSNR mean: ",np.mean(psnrlist))
         print("PSNR std: ",np.std(psnrlist))
@@ -930,15 +774,7 @@ def reconstruction_test(dataloader,params):
 
     once_computed = True
     use_learned = False
-    # if use_learned:
-    #     checkpoint = torch.load(os.path.join("ownTextFiles" ,"XVFInet_X4K1000FPS_exp2059_best_PSNR.pt"))
-    #     # [16,64]
-    #     ev8 = checkpoint["state_dict_Model"]["EV8"] 
-    #     # [64]
-    #     mean8 = checkpoint["state_dict_Model"]["Mean8"]
-    #     learned_pca = MYPCA()
-    #     learned_pca.mean = mean8
-    #     learned_pca.eigenvectors = ev8
+    
 
     wiS = params.wiS
     log_file = open( 'ownTextFiles/PCA-Reconstruction.txt', 'w')
@@ -946,7 +782,7 @@ def reconstruction_test(dataloader,params):
     log_file.write(str(datetime.datetime.now())[:-7] + '\n')
 
     b = [4,8,16,32,64]
-    #scales = [1,1/2,1/4,1/8,1/16]
+    
     possib = []
     for i in b:
         for k in range(int(math.log2(i**2))):
@@ -964,16 +800,12 @@ def reconstruction_test(dataloader,params):
 
             input_frames = (frames[:, :, :-1, :, :]+1)/2    #([1, 3, 2, 2160, 4096])
             input_frames = input_frames[0,:,0,824:1336,1792:2304].cpu() # to [C,H,W]  #824:1336,1792:2304
-            #print(input_frames.shape)
+
             assert input_frames.shape == (3,512,512)
 
 
-            #print(input_frames.shape)
-            temp_pic = input_frames.clone().numpy()
-            #print(input_frames.shape)
 
-            #input_frames = input_frames[:,:1024,:1024]
-            #print("max, min: ",torch.max(input_frames).item(),torch.min(input_frames).item())
+            temp_pic = input_frames.clone().numpy()
 
             params = DCTParamsAdap(wiS=i[0],gpu=1,components_fraction=i[1],data_used=0.01,h=input_frames.shape[1],w=input_frames.shape[2])
 
@@ -988,13 +820,8 @@ def reconstruction_test(dataloader,params):
             else:
                 _,pca = to_pca_testing(input_frames,params,components_fraction=0)
                 res,_ = to_pca_testing(input_frames,params,components_fraction=0,pca=pca)
-            #res = res.unsqueeze(0)
-            #print("after ",res.shape)
+
             res = torch.as_tensor(res,device="cpu").unsqueeze(0)
-            #print(res.shape)
-            #torch_prints(res,"PCA INFO")
-            #print("intermediate shape: ",res.shape)
-            #res,params,pcas,comps_used,cut_back=True,wanted_dim=0
             reconstructed = pca_inverse_testing(res,params,[pca],comps_used=int((i[0]**2)*i[1]),cut_back=True,wanted_dim=input_frames.shape[-2:])
             reconstructed = reconstructed.squeeze(0).cpu().numpy()
 
@@ -1002,9 +829,6 @@ def reconstruction_test(dataloader,params):
             psnrResult = peak_signal_noise_ratio(temp_pic,reconstructed,data_range=1)
 
             psnrlist.append(psnrResult)
-
-        #print("Counting: ",counting)
-        #print("PSNR LIST: ",psnrlist)
         psnrlist = np.array(psnrlist)
         print("PSNR mean: ",np.mean(psnrlist))
         print("PSNR std: ",np.std(psnrlist))
@@ -1034,7 +858,6 @@ class Parameters:
 
 def main_testset():
     params = Parameters(wiS=20,nSamples=2_000_000,on_gpu=False)
-    #print(params)
     data_test = X_Test(params,params.multiple)
 
     dataloader = torch.utils.data.DataLoader(data_test, batch_size=1, drop_last=True, shuffle=False,

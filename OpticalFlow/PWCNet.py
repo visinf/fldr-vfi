@@ -290,7 +290,7 @@ class PWCNet(torch.nn.Module):
         tensorPreprocessedSecond = torch.nn.functional.interpolate(input=tensorPreprocessedSecond,
                                                                    size=(intPreprocessedHeight, intPreprocessedWidth),
                                                                    mode='bilinear', align_corners=False)
-        # print("SHape: ",tensorPreprocessedFirst.shape)
+
         tensorFlow = 20.0 * torch.nn.functional.interpolate(
             input=self.forward_pre(tensorPreprocessedFirst, tensorPreprocessedSecond), size=(intHeight, intWidth),
             mode='bilinear', align_corners=False)

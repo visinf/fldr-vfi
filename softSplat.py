@@ -214,14 +214,12 @@ def cupy_kernel(strFunction, objVariables):
 
 @cupy.memoize(for_each_device=True)
 def cupy_launch(strFunction, strKernel):
-    # return cupy.cuda.compile_with_cache(strKernel).get_function(strFunction)
     return cupy.RawModule(code=strKernel).get_function(strFunction)
 # end
 
 class _FunctionSoftsplat(torch.autograd.Function):
     @staticmethod
     def forward(self, input, flow):
-        #print("FORWARD START    !!!!!!!!!!!!!!!!!!!!!!!!")
         intSamples = input.shape[0]
         intInputDepth, intInputHeight, intInputWidth = input.shape[1], input.shape[2], input.shape[3]
         intFlowDepth, intFlowHeight, intFlowWidth = flow.shape[1], flow.shape[2], flow.shape[3]
@@ -236,9 +234,7 @@ class _FunctionSoftsplat(torch.autograd.Function):
         output = input.new_zeros([ intSamples, intInputDepth, intInputHeight, intInputWidth ])
 
         if input.is_cuda == True:
-            #print("input shape: ",input.shape)
             n = output.nelement()
-            #print("BEFORE CUPY KERNEL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             cupy_launch('kernel_Softsplat_updateOutput', cupy_kernel('kernel_Softsplat_updateOutput', {
                 'input': input,
                 'flow': flow,
@@ -250,7 +246,7 @@ class _FunctionSoftsplat(torch.autograd.Function):
                 stream=collections.namedtuple('Stream', 'ptr')(torch.cuda.current_stream().cuda_stream)
             )
 
-            #print("CUPY KERNEL HAT GEKLAPPT     !!!!!!!!!!!!!!!!!!!!!!!!")
+
 
         elif input.is_cuda == False:
             raise NotImplementedError()
@@ -316,13 +312,7 @@ class _FunctionSoftsplat(torch.autograd.Function):
         elif input.is_cuda == False:
             raise NotImplementedError()
 
-        # end
-        #print(gradInput.get_device())
-        # if(gradFlow != None):
-        #     print(gradFlow.get_device())
-        # else:
-        #     print(gradInput.get_device())
-        #print(gradInput.get_device(),gradFlow.get_device())
+       
         return gradInput, gradFlow
     # end
 # end
@@ -331,7 +321,6 @@ def FunctionSoftsplat(tenInput, tenFlow, tenMetric, strType):
     assert(tenMetric is None or tenMetric.shape[1] == 1)
     assert(strType in ['summation', 'average', 'linear', 'softmax'])
 
-    #print("here deivce!!!:",tenInput.get_device(),torch.ones(tenInput.shape).get_device())
     if strType == 'average':
         tenInput = torch.cat([ tenInput, tenInput.new_ones(tenInput.shape[0], 1, tenInput.shape[2], tenInput.shape[3]) ], 1)
 
@@ -348,36 +337,25 @@ def FunctionSoftsplat(tenInput, tenFlow, tenMetric, strType):
         else:
             tenInput = torch.cat([ tenInput * tenMetric.exp().to(tenInput.get_device()), tenMetric.exp().to(tenInput.get_device()) ], 1) 
 
-    # tenInput = torch.cat([ tenInput * tenMetric.exp(), tenMetric.exp() ], 1)
-    # end
-
-    #print("before softsplat appyl: ",tenInput.shape)
     tenOutput = _FunctionSoftsplat.apply(tenInput, tenFlow)
 
-    #print("after: ",tenOutput.shape)
-
+    
     if strType != 'summation':
         tenNormalize = tenOutput[:, -1:, :, :]
 
         tenNormalize[tenNormalize == 0.0] = 1.0
 
         tenOutput = tenOutput[:, :-1, :, :] / tenNormalize
-    # end
     tenOutput = (tenOutput-0.5)*2
-    #from utils import torch_prints
-    #torch_prints(tenOutput,"softsplatoutput")
+    
 
     return tenOutput
-# end
+
 
 class Softsplat(nn.Module):
     def __init__(self, strType='softmax'):
         super(Softsplat, self).__init__()
         self.strType = strType
-    # end
 
     def forward(self, img, flow, z=None):
-        #print("Function softsplat call shape: ",img.shape,img.get_device(),flow.get_device(),img.dtype,flow.dtype)
         return FunctionSoftsplat(img, flow, z, self.strType)
-    # end
-# end
