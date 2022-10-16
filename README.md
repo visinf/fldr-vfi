@@ -9,6 +9,21 @@ The repository contains:
 - The checkpoint of the paper model
 - Links to all necessary ressources to do training and testing
 
+## Installation
+You can run the code in your conda environment or create a new one. The following steps explain how to use our code with a new conda environment.
+1. Create conda environment
+```
+conda create --name fldrnet
+source activate fldrnet
+```
+2. Install PyTorch.
+```
+conda install pytorch torchvision torchaudio cudatoolkit=11.6 -c pytorch -c conda-forge
+```
+3. Install the dependencies.
+```
+pip install -r requirements.txt
+```
 
 ## Testing
 In order to evaluate the model on X-Test, Inter4K-S, Inter4K-L and Xiph you need to first fetch the respective testset. The following table contains links where you can find them.
