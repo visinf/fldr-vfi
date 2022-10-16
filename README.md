@@ -25,6 +25,7 @@ After downloading the testsets you can configure the testset location for the pr
 --xiph_data_path /to/your/location
 --inter4k_data_path /to/your/location
 ```
+You can also simply change the default values of the flags in `main.py`
 After that, you need to put the checkpoint "fLDRnet_X4K1000FPS.pt" into `git_dir/checkpoint_dir/fLDRnet_X4K1000FPS_exp1/`, if not already there.
 If you now run 
 ```
