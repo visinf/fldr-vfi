@@ -5,9 +5,9 @@ M. Nottebaum, S. Roth and S. Schaub-Meyer. **Efficient Feature Extraction for Hi
 [Paper]() | [Preprint (arXiv)]() | [Video]()
 
 The repository contains:
-
-
-## Pretrained Model
+- The training and testing code for our approach
+- The checkpoint of the paper model
+- Links to all necessary ressources to do training and testing
 
 
 ## Testing
