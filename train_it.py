@@ -1,0 +1,42 @@
+import argparse,os,sys
+from utils import *
+
+
+def check_args(args):
+    # --checkpoint_dir
+    check_folder(args.checkpoint_dir)
+
+    # --text_dir
+    check_folder(args.text_dir)
+
+    # --log_dir
+    check_folder(args.log_dir)
+
+ 
+
+    return args
+
+def parse_args():
+    desc = "PyTorch implementation for XVFI"
+    parser = argparse.ArgumentParser(description=desc)
+    
+    parser.add_argument('--x_train_data_path', type=str, default="", help='path of X-Train dataset')
+    parser.add_argument('--toptim', action='store_true', default=False, help='continue the training')
+    
+    #parser.add_argument('--gpu', type=int, default=0, help='path of X-Train dataset')
+    
+    return check_args(parser.parse_args())
+
+def main():
+    args = parse_args()
+    
+    command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path
+    os.system(command)
+    if args.toptim:
+        os.remove("checkpoint_dir\fLDRnet_X4K1000FPS_exp2\fLDRnet_X4K1000FPS_exp2_latest.pt")
+        command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path
+        + "--epochs 220 --TOptimization --sminterpWT --init_lr 0.001"
+        os.system(command)
+
+if __name__ == '__main__':
+    main()

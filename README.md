@@ -29,7 +29,11 @@ pip install -r requirements.txt
 ```
 
 ## Training
-Coming soon
+In order to train a model from scratch onto the X-Train dataset, you need to specify the location of X-Train, by passing the `--x_train_data_path /to/xtrain/train` flag for the following command:
+```
+python train_it.py --x_train_data_path /to/xtrain/train  --toptim
+```
+You can optionally set the `--toptim` flag to include a post-training optimization of the temperature parameter (mentioned in the paper in the occlusion estimation section).
 
 ## Testing
 1. Download the respective testset:
