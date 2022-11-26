@@ -29,9 +29,12 @@ def parse_args():
 
 def main():
     args = parse_args()
-    
+
+    # Normal Training of 200 epochs
     command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path
     os.system(command)
+
+    # Optional Toptimization  | it removes the latest checkpoint of the method of exp 2. If you want to do several training runs, change the exp_num to a new unique number.
     if args.toptim:
         os.remove("checkpoint_dir\fLDRnet_X4K1000FPS_exp2\fLDRnet_X4K1000FPS_exp2_latest.pt")
         command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path
