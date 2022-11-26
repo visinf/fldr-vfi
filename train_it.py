@@ -1,20 +1,7 @@
 import argparse,os,sys
-from utils import *
 
 
-def check_args(args):
-    # --checkpoint_dir
-    check_folder(args.checkpoint_dir)
 
-    # --text_dir
-    check_folder(args.text_dir)
-
-    # --log_dir
-    check_folder(args.log_dir)
-
- 
-
-    return args
 
 def parse_args():
     desc = "PyTorch implementation for XVFI"
@@ -25,7 +12,7 @@ def parse_args():
     
     #parser.add_argument('--gpu', type=int, default=0, help='path of X-Train dataset')
     
-    return check_args(parser.parse_args())
+    return parser.parse_args()
 
 def main():
     args = parse_args()
@@ -36,9 +23,9 @@ def main():
 
     # Optional Toptimization  | it removes the latest checkpoint of the method of exp 2. If you want to do several training runs, change the exp_num to a new unique number.
     if args.toptim:
-        os.remove("checkpoint_dir\fLDRnet_X4K1000FPS_exp2\fLDRnet_X4K1000FPS_exp2_latest.pt")
-        command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path
-        + "--epochs 220 --TOptimization --sminterpWT --init_lr 0.001"
+        #os.remove("checkpoint_dir\\fLDRnet_X4K1000FPS_exp2\\fLDRnet_X4K1000FPS_exp2_latest.pt")
+        os.remove(os.path.join("checkpoint_dir","fLDRnet_X4K1000FPS_exp2","fLDRnet_X4K1000FPS_exp2_latest.pt"))
+        command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path + "--epochs 220 --TOptimization --sminterpWT --init_lr 0.001"
         os.system(command)
 
 if __name__ == '__main__':
