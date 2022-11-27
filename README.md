@@ -61,7 +61,7 @@ The option `--papermodel` ensures all preferences are set according to the model
 
 
 ## Acknowledgements
-We thank [Sim et al.](https://openaccess.thecvf.com/content/ICCV2021/papers/Sim_XVFI_eXtreme_Video_Frame_Interpolation_ICCV_2021_paper.pdf), [Niklaus et al.](https://openaccess.thecvf.com/content_CVPR_2020/papers/Niklaus_Softmax_Splatting_for_Video_Frame_Interpolation_CVPR_2020_paper.pdf) and [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf) for providing 4K datasets, which were necessary to adequately evaluate and train our method.
+We thank [Sim et al.](https://openaccess.thecvf.com/content/ICCV2021/papers/Sim_XVFI_eXtreme_Video_Frame_Interpolation_ICCV_2021_paper.pdf), [Niklaus et al.](https://openaccess.thecvf.com/content_CVPR_2020/papers/Niklaus_Softmax_Splatting_for_Video_Frame_Interpolation_CVPR_2020_paper.pdf) and [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf) for providing 4K datasets, which were necessary to adequately evaluate and train our method. Our Inter4K testset for video frame interpolation is a subset of the images occuring in the Inter4K testset of [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf).
 
 ## Citation
 We hope you find our work useful. If you would like to acknowledge it in your project, please use the following citation:
