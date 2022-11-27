@@ -42,7 +42,7 @@ You can optionally set the `--toptim` flag to include a post-training optimizati
 | :---        |     :---:       | 
 | X-Test     | [XVFI repo](https://github.com/JihyongOh/XVFI)| 
 | Xiph   | [Xiph generation](https://github.com/sniklaus/softmax-splatting/blob/master/benchmark.py) | 
-| Inter4K       | [Our test images (Coming soon)](https://www.dropbox.com/sh/qjiht28m488u85e/AADJDwtgAP5vYIItYoFCCJkra?dl=0) | 
+| Inter4K       | [Our test images](https://www.dropbox.com/sh/qjiht28m488u85e/AADJDwtgAP5vYIItYoFCCJkra?dl=0) | 
 
 2. Use the file path for the test sets accordingly or update them in `main.py`:
 ```
