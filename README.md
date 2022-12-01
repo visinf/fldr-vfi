@@ -1,16 +1,14 @@
 # fldr-vfi
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Framework](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?&logo=PyTorch&logoColor=white)](https://pytorch.org/)
+
 This is the official repository accompanying the BMVC 2022 paper:
 
 **Efficient Feature Extraction for High-resolution Video Frame Interpolation**  
-M. Nottebaum, S. Roth and S. Schaub-Meyer  
-BMVC 2022
+Moritz Nottebaum, [Stefan Roth](https://www.visinf.tu-darmstadt.de/visinf/team_members/sroth/sroth.en.jsp) and [Simone Schaub-Mayer](https://schaubsi.github.io)  
+BMVC 2022. [[paper (open access)](https://bmvc2022.mpi-inf.mpg.de/0825.pdf)] [[supplemental](https://bmvc2022.mpi-inf.mpg.de/0825_supp.zip)] [[example results]()] [[talk video](https://youtu.be/wIKlm_lwf3U)] [[preprint (arXiv)](https://arxiv.org/abs/2211.14005)]
 
-[Paper]() | [Preprint (arXiv)]() | [Video]()
-
-The repository contains:
-- The training and testing code of our approach
-- The checkpoint of our video frame interpolation model to reproduce the paper results
-- Links to all testsets, including Inter
+This repository contains the training and test code along with the trained weights to reproduce our results, and our test datasets Inter4K-S and Inter4K-L (subsets of [Inter4K](https://alexandrosstergiou.github.io/datasets/Inter4K/index.html)).
 
 ## Installation
 The following steps will set up a local copy of the repository.
@@ -29,20 +27,21 @@ pip install -r requirements.txt
 ```
 
 ## Training
-In order to train a model from scratch onto the X-Train dataset, you need to specify the location of X-Train, by passing the `--x_train_data_path /to/xtrain/train` flag for the following command:
+The following command will train a model from scratch:
 ```
 python train_it.py --x_train_data_path /to/xtrain/train  --toptim
 ```
-You can optionally set the `--toptim` flag to include a post-training optimization of the temperature parameter (mentioned in the paper in the occlusion estimation section).
+The flag `--x_train_data_path /to/xtrain/train` contains the location of the training data. We used [X-Train](https://github.com/JihyongOh/XVFI#X4K1000FPS) from Sim et al.
+The `--toptim` flag is optional and adds a post-training optimization of the temperature parameter as described in our paper in the occlusion estimation section.
 
 ## Testing
-1. Download the respective testset:
+1. Download the respective testset from the following links:
 
 | Dataset       | Link  | 
 | :---        |     :---:       | 
-| X-Test     | [XVFI repo](https://github.com/JihyongOh/XVFI)| 
-| Xiph   | [Xiph generation](https://github.com/sniklaus/softmax-splatting/blob/master/benchmark.py) | 
-| Inter4K       | [Our test images](https://www.dropbox.com/sh/qjiht28m488u85e/AADJDwtgAP5vYIItYoFCCJkra?dl=0) | 
+| X-Test     | [XVFI repository](https://github.com/JihyongOh/XVFI#X4K1000FPS)| 
+| Xiph   | [Xiph benchmark](https://github.com/sniklaus/softmax-splatting/) | 
+| Inter4K       | [Our subset](https://www.dropbox.com/sh/qjiht28m488u85e/AADJDwtgAP5vYIItYoFCCJkra?dl=0) ([Licence](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt)) | 
 
 2. Use the file path for the test sets accordingly or update them in `main.py`:
 ```
@@ -57,11 +56,11 @@ You can optionally set the `--toptim` flag to include a post-training optimizati
 python main.py --exp_num 1 --gpu 0 --papermodel --test5scales 
 ```
 By adding the option `--testsets` you can choose on which data you want to evaluate (options are `"Inter4K88"`, `"Inter4k816"`, `"X4K1000FPS"`,`"Xiph"`).
-The option `--papermodel` ensures all preferences are set according to the model of the paper. The option `--test5scales` adapts `args.fractions`,`args.scales`,`args.phase`,`args.S_tst` and `args.moreTstSc` to allow for additional scales for testing. 
+The option `--papermodel` ensures all preferences are set according to the model of the paper. The option `--test5scales` adapts `args.fractions`, `args.scales`, `args.phase`, `args.S_tst` and `args.moreTstSc` to allow for additional scales for testing. 
 
 
 ## Acknowledgements
-We thank [Sim et al.](https://openaccess.thecvf.com/content/ICCV2021/papers/Sim_XVFI_eXtreme_Video_Frame_Interpolation_ICCV_2021_paper.pdf), [Niklaus et al.](https://openaccess.thecvf.com/content_CVPR_2020/papers/Niklaus_Softmax_Splatting_for_Video_Frame_Interpolation_CVPR_2020_paper.pdf) and [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf) for providing 4K datasets, which were necessary to adequately evaluate and train our method. Our Inter4K testset for video frame interpolation is a subset of the images occuring in the Inter4K testset of [Stergiou and Poppe](https://arxiv.org/pdf/2111.00772.pdf).
+We thank [Sim et al.](https://github.com/JihyongOh/XVFI), [Niklaus et al.](https://github.com/sniklaus/softmax-splatting/) and [Stergiou and Poppe](https://github.com/alexandrosstergiou/Inter4K) for providing 4K datasets, which were necessary to adequately train and evaluate our method. Our Inter4K testsets for video frame interpolation is a subset of the images occuring in the Inter4K testset of [Stergiou and Poppe](https://github.com/alexandrosstergiou/Inter4K) shared under [CC BY-NC 4.0](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt).
 
 ## Citation
 We hope you find our work useful. If you would like to acknowledge it in your project, please use the following citation:
@@ -70,6 +69,6 @@ We hope you find our work useful. If you would like to acknowledge it in your pr
   author    = {Nottebaum, Moritz and Roth, Stefan and Schaub-Meyer, Simone},
   title     = {Efficient Feature Extraction for High-resolution Video Frame Interpolation},
   booktitle = {British Machine Vision Conference  {BMVC}},
-  publisher = {{BMVA} Press},
-  year      = {2022}}
+  year      = {2022}
+}
 ```
