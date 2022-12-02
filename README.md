@@ -6,7 +6,7 @@ This is the official repository accompanying the BMVC 2022 paper:
 
 **Efficient Feature Extraction for High-resolution Video Frame Interpolation**  
 Moritz Nottebaum, [Stefan Roth](https://www.visinf.tu-darmstadt.de/visinf/team_members/sroth/sroth.en.jsp) and [Simone Schaub-Mayer](https://schaubsi.github.io)  
-BMVC 2022. [[paper (open access)](https://bmvc2022.mpi-inf.mpg.de/0825.pdf)] [[supplemental](https://bmvc2022.mpi-inf.mpg.de/0825_supp.zip)] [[example results]()] [[talk video](https://youtu.be/wIKlm_lwf3U)] [[preprint (arXiv)](https://arxiv.org/abs/2211.14005)]
+BMVC 2022. [[paper (open access)](https://bmvc2022.mpi-inf.mpg.de/0825.pdf)] [[supplemental](https://bmvc2022.mpi-inf.mpg.de/0825_supp.zip)] [[example results](https://youtu.be/C4lgU6XXhbw)] [[talk video](https://youtu.be/wIKlm_lwf3U)] [[preprint (arXiv)](https://arxiv.org/abs/2211.14005)]
 
 This repository contains the training and test code along with the trained weights to reproduce our results, and our test datasets Inter4K-S and Inter4K-L (subsets of [Inter4K](https://alexandrosstergiou.github.io/datasets/Inter4K/index.html)).
 
