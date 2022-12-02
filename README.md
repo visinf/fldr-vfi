@@ -60,7 +60,10 @@ The option `--papermodel` ensures all preferences are set according to the model
 
 
 ## Acknowledgements
-We thank [Sim et al.](https://github.com/JihyongOh/XVFI), [Niklaus et al.](https://github.com/sniklaus/softmax-splatting/) and [Stergiou and Poppe](https://github.com/alexandrosstergiou/Inter4K) for providing 4K datasets, which were necessary to adequately train and evaluate our method. Our Inter4K testsets for video frame interpolation is a subset of the images occuring in the Inter4K testset of [Stergiou and Poppe](https://github.com/alexandrosstergiou/Inter4K) shared under [CC BY-NC 4.0](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt).
+We thank the contributors of the following repositories for using parts of their publicly available code and 4K datasets, which were necessary to adequately train and evaluate our method:
+- [XVFI](https://github.com/JihyongOh/XVFI)
+- [Softmax-splatting](https://github.com/sniklaus/softmax-splatting/)
+- [Inter4K](https://github.com/alexandrosstergiou/Inter4K): Our Inter4K testset for video frame interpolation is a subset of the images occuring in the Inter4K dataset shared under [CC BY-NC 4.0](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt).
 
 ## Citation
 We hope you find our work useful. If you would like to acknowledge it in your project, please use the following citation:
