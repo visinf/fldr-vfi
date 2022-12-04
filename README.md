@@ -50,7 +50,7 @@ The `--toptim` flag is optional and adds a post-training optimization of the tem
 --inter4k_data_path /to/your/location
 ```
 
-3. The following line will evaluate the provided checkpoint "fLDRnet_X4K1000FPS.pt" on all four testsets (X-Test, Xiph-4K, Inter4K-S, Inter4K-L): 
+3. The following line will evaluate the provided checkpoint "fLDRnet_X4K1000FPS_exp1_best_PSNR.pt" on all four testsets (X-Test, Xiph-4K, Inter4K-S, Inter4K-L): 
 
 ```
 python main.py --exp_num 1 --gpu 0 --papermodel --test5scales 

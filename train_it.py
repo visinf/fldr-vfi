@@ -25,7 +25,7 @@ def main():
     if args.toptim:
         #os.remove("checkpoint_dir\\fLDRnet_X4K1000FPS_exp2\\fLDRnet_X4K1000FPS_exp2_latest.pt")
         os.remove(os.path.join("checkpoint_dir","fLDRnet_exp2","fLDRnet_exp2_latest.pt"))
-        command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path + "--epochs 220 --TOptimization --sminterpWT --init_lr 0.001"
+        command = "python main.py --phase 'train' --exp_num 2 --gpu 0 --papermodel --x_train_data_path " + args.x_train_data_path + " --epochs 220 --TOptimization --sminterpWT --init_lr 0.001"
         os.system(command)
 
 if __name__ == '__main__':
