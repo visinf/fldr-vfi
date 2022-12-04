@@ -50,12 +50,12 @@ The `--toptim` flag is optional and adds a post-training optimization of the tem
 --inter4k_data_path /to/your/location
 ```
 
-3. The following line will evaluate the provided checkpoint "fLDRnet_X4K1000FPS.pt" on all four testsets (X-Test, Xiph, Inter4K-S, Inter4K-L): 
+3. The following line will evaluate the provided checkpoint "fLDRnet_X4K1000FPS.pt" on all four testsets (X-Test, Xiph-4K, Inter4K-S, Inter4K-L): 
 
 ```
 python main.py --exp_num 1 --gpu 0 --papermodel --test5scales 
 ```
-By adding the option `--testsets` you can choose on which data you want to evaluate (options are `"Inter4K88"`, `"Inter4k816"`, `"X4K1000FPS"`,`"Xiph"`).
+By adding the option `--testsets` you can choose on which data you want to evaluate (options are `"Inter4K-S"`, `"Inter4k-L"`, `"X-Test"`,`"Xiph-4K"`).
 The option `--papermodel` ensures all preferences are set according to the model of the paper. The option `--test5scales` adapts `args.fractions`, `args.scales`, `args.phase`, `args.S_tst` and `args.moreTstSc` to allow for additional scales for testing. 
 
 

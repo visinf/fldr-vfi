@@ -137,13 +137,13 @@ def get_test_data(args,dataset, multiple, validation,specific=""):
         data_test = X_Test(args, multiple, validation)
     elif dataset == 'Vimeo' and args.phase != 'test_custom':
         data_test = Vimeo_Test(args, validation)
-    elif dataset == "Xiph" :
+    elif dataset == "Xiph-4K" :
         data_test = Xiph_Test(args,validation)
     elif dataset == "Xiph2KC" :
         data_test = Xiph_Test(args,validation,twoKC=True)
-    elif dataset == "Inter4K88":
+    elif dataset == "Inter4K-S":
         data_test = Inter4K_Test(args,multiple,scenerange=8)  
-    elif dataset == "Inter4K816":
+    elif dataset == "Inter4K-L":
         data_test = Inter4K_Test(args,multiple,scenerange=16) 
     
 

@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoint_dir', help='checkpoint_dir')
     parser.add_argument('--log_dir', type=str, default='./log_dir', help='Directory name to save training logs')
 
-    parser.add_argument('--dataset', default='X4K1000FPS', choices=['X4K1000FPS', 'Vimeo',"Inter4K",'Xiph'],
+    parser.add_argument('--dataset', default='X4K1000FPS', choices=['X4K1000FPS', 'Vimeo',"Inter4K",'Xiph-4K'],
                         help='Training/test Dataset')
 
     
@@ -174,7 +174,7 @@ def parse_args():
     parser.add_argument('--directly_save_model', action="store_true")
     parser.add_argument('--flowtest', action="store_true")
     parser.add_argument('--no_validation', action="store_true")
-    parser.add_argument('--testsets', default=["Inter4K88","Inter4K816",'X4K1000FPS','Xiph'] ,nargs='+', )
+    parser.add_argument('--testsets', default=["Inter4K-S","Inter4K-L",'X4K1000FPS','Xiph-4K'] ,nargs='+', )
     parser.add_argument('--specificCheckpoint',  type=int, default=-1, help="dsadasd")
 
          
@@ -232,6 +232,10 @@ def check_args(args):
 
 def main():
     args = parse_args()
+    
+    if "X-Test" in args.testsets:
+        args.testsets[args.testsets.find("X-Test")] = "X4K1000FPS"
+
 
     if(args.papermodel):
         getmodelconfig(args)
@@ -352,7 +356,7 @@ def main():
 
         for i in args.testsets:
             args.dataset = i
-            temMultiple = {"X4K1000FPS": 8,"XTest2KC":8,"Inter4K88":8,"Inter4K816":8,"Xiph": 2,"Xiph2KC":2,"Vimeo":2 ,"Adobe240": 8,"HD":4}
+            temMultiple = {"X4K1000FPS": 8,"XTest2KC":8,"Inter4K-S":8,"Inter4K-L":8,"Xiph-4K": 2,"Xiph2KC":2,"Vimeo":2 ,"Adobe240": 8,"HD":4}
             final_test_loader = get_test_data(args, args.dataset,multiple=temMultiple[i],
                                               validation=False,specific=i)  
 
@@ -364,7 +368,7 @@ def main():
                                                                       postfix=postfix, validation=False)
             SM.write_info('Final 4k frames PSNR '+i + ' : {:.4}\n'.format(testPSNR))
             print('Final 4k frames PSNR '+i + ' : {:.4}\n'.format(testPSNR))
-            if(args.dataset == "Inter4K88" or args.dataset == "Inter4K816"):
+            if(args.dataset == "Inter4K-S" or args.dataset == "Inter4K-L"):
 	            printstring = " ".join([str(index)+": "+str(ttime.avg)+ " || " for index,ttime in enumerate(PSNRsList)])
 	            print(printstring)
 	            SM.write_info(printstring)
@@ -507,7 +511,7 @@ def train(model_net, criterion, device, save_manager, args):
     print("[*] Training starts")
 
 
-    valid_loader = get_test_data(args,"X4K1000FPS" if(args.dataset=="Inter4K88" or args.dataset=="Inter4K816")else args.dataset, multiple=4, validation=True)  # multiple is only used for X4K1000FPS
+    valid_loader = get_test_data(args,"X4K1000FPS" if(args.dataset=="Inter4K-S" or args.dataset=="Inter4K-L")else args.dataset, multiple=4, validation=True)  # multiple is only used for X4K1000FPS
     
     tempIndex = 0
     if(args.TOptimization):
@@ -788,7 +792,7 @@ def test(test_loader, model_net, criterion, epoch, args, device, multiple, postf
 
 
     
-    sizesDS = {"Inter4K88":[2160,3840],"Inter4K816":[2160,3840]  ,"Xiph": [2160,4096], "Adobe240": [720,1280], "X4K1000FPS": [2160,4096],"Vimeo": [256,448]}
+    sizesDS = {"Inter4K-S":[2160,3840],"Inter4K-L":[2160,3840]  ,"Xiph-4K": [2160,4096], "Adobe240": [720,1280], "X4K1000FPS": [2160,4096],"Vimeo": [256,448]}
 
     progress = ProgressMeter(len(test_loader), PSNRs, SSIMs,pred_time, prefix="exp "+str(args.exp_num) +' Test after Epoch[{}]: '.format(epoch))
 
@@ -873,7 +877,7 @@ def test(test_loader, model_net, criterion, epoch, args, device, multiple, postf
                 val_loss_q.append(rec_loss.item())
                 
             
-            if((args.dataset=="Xiph" or args.dataset=="X4K1000FPS" or args.dataset=="Inter4K88" or args.dataset=="Inter4K816") and not validation and not args.xiph2k and not args.xtest2k):
+            if((args.dataset=="Xiph-4K" or args.dataset=="X4K1000FPS" or args.dataset=="Inter4K-S" or args.dataset=="Inter4K-L") and not validation and not args.xiph2k and not args.xtest2k):
                 tempsize = sizesDS[args.dataset]
                 assert OH==tempsize[0] and OW==tempsize[1]
 
@@ -953,7 +957,7 @@ def test(test_loader, model_net, criterion, epoch, args, device, multiple, postf
                 # measure
                 if(validation):
                     losses.update(rec_loss.item(), 1)
-                if(not validation and (args.dataset == "Inter4K88" or args.dataset == "Inter4K816")):
+                if(not validation and (args.dataset == "Inter4K-S" or args.dataset == "Inter4K-L")):
                 	PSNRsList[int(t_value*multiple)-1].update(test_psnr,1)
                 PSNRs.update(test_psnr, 1)
                 SSIMs.update(test_ssim, 1)
@@ -962,7 +966,7 @@ def test(test_loader, model_net, criterion, epoch, args, device, multiple, postf
 
                 if (testIndex % (multiple - 1)) == multiple - 2:
                     progress.print(testIndex)
-                    if(not validation and  (args.dataset == "Inter4K88" or args.dataset == "Inter4K816")):
+                    if(not validation and  (args.dataset == "Inter4K-S" or args.dataset == "Inter4K-L")):
 	                    printstring = " ".join([str(index)+": "+str(ttime.avg)+ " || " for index,ttime in enumerate(PSNRsList)])
 	                    print(printstring)
                     if(args.stoptestat != -1):
