@@ -25,6 +25,11 @@ conda install pytorch torchvision torchaudio cudatoolkit=11.6 -c pytorch -c cond
 ```
 pip install -r requirements.txt
 ```
+4. Handle CuPy problems (Optional):
+```
+conda install -c conda-forge cupy
+```
+If CuPy throws importing errors during execution, a conda installation can fix it.
 
 ## Training
 The following command will train a model from scratch:
