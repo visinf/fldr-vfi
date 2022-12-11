@@ -18,7 +18,7 @@ from torch.autograd import Variable
 from torchvision import models
 
 from useful import torch_prints
-
+from inter4kreader import Inter4K_Test
 
 from skimage.transform import rescale
 
@@ -142,9 +142,9 @@ def get_test_data(args,dataset, multiple, validation,specific=""):
     elif dataset == "Xiph2KC" :
         data_test = Xiph_Test(args,validation,twoKC=True)
     elif dataset == "Inter4K-S":
-        data_test = Inter4K_Test(args,multiple,scenerange=8)  
+        data_test = Inter4K_Test(args,scenerange=8)  
     elif dataset == "Inter4K-L":
-        data_test = Inter4K_Test(args,multiple,scenerange=16) 
+        data_test = Inter4K_Test(args,scenerange=16) 
     
 
     dataloader = torch.utils.data.DataLoader(data_test, batch_size=1, drop_last=False, shuffle=False, pin_memory=args.pin_memory_test)
@@ -434,68 +434,7 @@ def make_2D_dataset_X_Test(dir, multiple, t_step_size):
 
 
 
-class Inter4K_Test(data.Dataset):
-    def __init__(self, args, multiple,twoK=False,scenerange=8):
-        self.args = args
-        self.twoK = False
-        self.multiple = 8
-        self.scenerange = scenerange
-        assert self.scenerange%self.multiple == 0
-        self.testPath = []
-        testfolder = self.args.inter4k_data_path
-        folders = os.listdir(testfolder)
-        t = np.linspace((1 / self.multiple), (1 - (1 / self.multiple)), (self.multiple - 1))
-        
-        skipit = False
-        for i in folders:
-            tempath = os.path.join(testfolder,i)
-            
 
-            temfiles = sorted(os.listdir(tempath),key=lambda x: int(x.split("_")[0][3:]))
-            scenes = [[]]
-            lastscene = 0
-            for imadd in temfiles:
-                if(int(imadd.split("_")[1][:-4])> lastscene):
-                    scenes.append([imadd])
-                    lastscene += 1
-                else:
-                    scenes[-1].append(imadd)
-
-            for scenindex,scen in enumerate(scenes):
-                if(not len(scen)< self.scenerange+1):
-                    temscen = [os.path.join(tempath,file) for file in scen]
-                    for temk in range(self.multiple-1):
-                        self.testPath.append([temscen[0],temscen[self.scenerange],temscen[(temk+1)*(self.scenerange//self.multiple)],t[temk],tempath+"_scene_"+str(scenindex)])
-
-   
-            
-
-        print("# of Inter4K triplet testset : ",len(self.testPath))
-        self.nIterations = len(self.testPath)
-
-        # Raise error if no images found in test_data_path.
-        if len(self.testPath) == 0:
-            raise (RuntimeError("Found 0 files in subfolders of: " + self.args.test_data_path + "\n"))
-
-    def __getitem__(self, idx):
-        I0, I1, It, t_value, scene_name = self.testPath[idx]
-
-        I0I1It_Path = [I0, I1, It]
-
-        # Returns all frames (65)
-        frames = frames_loader_test(self.args, I0I1It_Path,validation=False)
-        # including "np2Tensor [-1,1] normalized"
-
-        I0_path = I0.split(os.sep)[-1]
-        I1_path = I1.split(os.sep)[-1]
-        It_path = It.split(os.sep)[-1]
-
-        if(self.twoK):
-            frames = F.interpolate(frames,scale_factor=1/2,mode="bilinear",align_corners=self.args.align_cornerse)
-        return frames, np.expand_dims(np.array(t_value, dtype=np.float32), 0), scene_name, [It_path, I0_path, I1_path]
-
-    def __len__(self):
-        return self.nIterations
 
 class X_Test(data.Dataset):
     def __init__(self, args, multiple, validation,twoKC=False):

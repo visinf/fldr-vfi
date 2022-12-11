@@ -27,6 +27,7 @@ pip install -r requirements.txt
 ```
 4. Handle CuPy problems (Optional):
 ```
+pip uninstall cupy-cuda116
 conda install -c conda-forge cupy
 ```
 If CuPy throws importing errors during execution, a conda installation can fix it.
