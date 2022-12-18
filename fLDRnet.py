@@ -373,8 +373,6 @@ class DCTVFInet(nn.Module):
 
 
 
-
-		start_time = time.time()
 		## Flow estimation
 		if flow_l_prev is None:
 			
@@ -409,9 +407,6 @@ class DCTVFInet(nn.Module):
 			flow_refine_l =  torch.cat([flow_t0_l, flow_t1_l], dim=1)
 
 	
-
-
-		upscaleDict = [self.args.scales[0]/1.0 for i in self.args.scales] 
 		upscale =   x_l.shape[3]/flow_t0_l.shape[2]  
 
 		if(not upscale.is_integer()):

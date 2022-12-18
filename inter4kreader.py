@@ -1,7 +1,7 @@
 import numpy as np
 import os,sys,cv2,torch
 import torch.nn.functional as F
-
+import torch.utils.data as data
 # Datareader for inter4K testset.
 class Inter4K_Test(data.Dataset):
     def __init__(self, args, scenerange=8):

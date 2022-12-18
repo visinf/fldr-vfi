@@ -64,6 +64,8 @@ python main.py --exp_num 1 --gpu 0 --papermodel --test5scales
 By adding the option `--testsets` you can choose on which data you want to evaluate (options are `"Inter4K-S"`, `"Inter4k-L"`, `"X-Test"`,`"Xiph-4K"`).
 The option `--papermodel` ensures all preferences are set according to the model of the paper. The option `--test5scales` adapts `args.fractions`, `args.scales`, `args.phase`, `args.S_tst` and `args.moreTstSc` to allow for additional scales for testing. 
 
+## Run Model
+In `run_on_your_images.py` you have the `run_on_images(...)` function, which simplifies to test the model on your own data. In the `main()` function you can see examplary code to test on X-Test.
 
 ## Acknowledgements
 We thank the contributors of the following repositories for using parts of their publicly available code and 4K datasets, which were necessary to adequately train and evaluate our method:

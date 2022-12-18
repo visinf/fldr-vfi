@@ -51,12 +51,12 @@ def parse_args():
 
     parser.add_argument('--x_train_data_path', type=str, default=prefix+'train')
     parser.add_argument('--x_val_data_path', type=str, default=prefix+'val')
-    parser.add_argument('--x_test_data_path', type=str, default=prefix+'test')
+    parser.add_argument('--x_test_data_path', type=str, default="X_test/"+'test')
 
 
     parser.add_argument('--vimeo_data_path', type=str, default=superprefix+'vimeo_triplet') 
     parser.add_argument('--xiph_data_path', type=str, default="../XVFI-main/XiphDataset/netflix") 
-    parser.add_argument('--inter4k_data_path', type=str, default="../XVFIM-main/inter4K/Inter4KNewTestset/") 
+    parser.add_argument('--inter4k_data_path', type=str, default="inter4ktestset/") 
     
 
     ################################        My Hyperparameters      #############################################
