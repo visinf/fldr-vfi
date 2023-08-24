@@ -47,7 +47,7 @@ The `--toptim` flag is optional and adds a post-training optimization of the tem
 | :---        |     :---:       | 
 | X-Test     | [XVFI repository](https://github.com/JihyongOh/XVFI#X4K1000FPS)| 
 | Xiph   | [Xiph benchmark](https://github.com/sniklaus/softmax-splatting/) | 
-| Inter4K       | [Our subset](https://www.dropbox.com/sh/qjiht28m488u85e/AADJDwtgAP5vYIItYoFCCJkra?dl=0) ([Licence](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt)) | 
+| Inter4K       | [Our subset](https://download.visinf.tu-darmstadt.de/data/2022-bmvc-nottebaum-fldr-vfi/Inter4K_test.zip) ([Licence](https://github.com/alexandrosstergiou/Inter4K/blob/main/licence.txt)) | 
 
 2. Use the file path for the test sets accordingly or update them in `main.py`:
 ```
